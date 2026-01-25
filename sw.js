@@ -1,13 +1,12 @@
-const CACHE_NAME = "aqiproc-cache-v2";
+const CACHE_NAME = "aqiproc-cache-v3";
 const STATIC_ASSETS = [
-  "/",
-  "/index.html",
-  "/manifest.json",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png"
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
-// Install
 self.addEventListener("install", event => {
   self.skipWaiting();
   event.waitUntil(
@@ -15,18 +14,14 @@ self.addEventListener("install", event => {
   );
 });
 
-// Activate
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-      )
+      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
     ).then(() => self.clients.claim())
   );
 });
 
-// Fetch (Network first, fallback to cache)
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
 
