@@ -10,6 +10,8 @@
 <meta name="theme-color" content="#009966">
 <link rel="apple-touch-icon" href="icons/aqi-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AQIproc">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
 <style>
@@ -105,7 +107,7 @@ button,input{
 <button class="theme-toggle" onclick="toggleTheme()">🌞</button>
 <div class="header">🌫 AQIproc</div>
 
-<div class="card">
+<div class="card" id="mainCard">
   <div id="locationName">Loading Kolkata AQI…</div>
   <div id="aqiValue" class="big">--</div>
   <div id="aqiStatus" class="small">Fetching air quality…</div>
@@ -148,8 +150,15 @@ function toggleTheme(){
 
 function safeText(id,v){document.getElementById(id).textContent=v;}
 function updateTime(){
-  const now=new Date();
-  safeText("lastUpdated","Last updated: "+now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+  safeText("lastUpdated","Last updated: "+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+}
+
+/* 🌍 OFFLINE CACHE */
+const cached=localStorage.getItem("lastAQI");
+if(cached){
+  const c=JSON.parse(cached);
+  safeText("locationName",c.label+" (cached)");
+  safeText("aqiValue",c.aqi);
 }
 
 /* 🌍 DEFAULT KOLKATA */
@@ -157,14 +166,14 @@ let locationUpdated=false;
 window.addEventListener("DOMContentLoaded",()=>{
   fetchAQI(22.5726,88.3639,"Kolkata, India");
   setTimeout(detectLocation,4000);
-  setInterval(()=>{ if(locationUpdated) detectLocation(); },600000); // Auto refresh 10 min
+  setInterval(()=>{ if(locationUpdated) detectLocation(); },600000);
 });
 
 function detectLocation(){
   if(!navigator.geolocation){ fallbackIP(); return; }
   navigator.geolocation.getCurrentPosition(
-    pos=>{locationUpdated=true;fetchAQI(pos.coords.latitude,pos.coords.longitude,"Your Location");},
-    err=>fallbackIP(),
+    p=>{locationUpdated=true;fetchAQI(p.coords.latitude,p.coords.longitude,"Your Location");},
+    ()=>fallbackIP(),
     {timeout:8000}
   );
 }
@@ -178,7 +187,7 @@ async function fallbackIP(){
       fetchAQI(d.latitude,d.longitude,d.city+", "+d.country);
     }
   }catch{
-    if(!locationUpdated) safeText("aqiStatus","Showing default city (Kolkata)");
+    safeText("aqiStatus","Showing default city (Kolkata)");
   }
 }
 
@@ -194,75 +203,46 @@ function searchCity(){
     }else safeText("locationName","City not found in India");
   });
 }
-
-// Trigger search on Enter key
-cityInput.addEventListener("keypress", e=>{
-  if(e.key==="Enter") searchCity();
-});
+cityInput.addEventListener("keypress",e=>{if(e.key==="Enter")searchCity();});
 
 function fetchAQI(lat,lon,label){
   safeText("locationName",label);
   fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5,pm10,nitrogen_dioxide,ozone`)
   .then(r=>r.json())
   .then(d=>{
-    if(!d.current || d.current.us_aqi == null){
-      safeText("aqiStatus","AQI data unavailable");
-      safeText("healthAdvice","Try again later.");
-      return;
-    }
+    if(!d.current || d.current.us_aqi==null) return;
 
     const aqi=d.current.us_aqi;
     const el=document.getElementById("aqiValue");
+    const card=document.getElementById("mainCard");
 
     safeText("aqiValue",aqi);
-    safeText("pm25", d.current.pm2_5 ? d.current.pm2_5+" µg/m³" : "--");
-    safeText("pm10", d.current.pm10 ? d.current.pm10+" µg/m³" : "--");
-    safeText("no2", d.current.nitrogen_dioxide ? d.current.nitrogen_dioxide+" µg/m³" : "--");
-    safeText("o3", d.current.ozone ? d.current.ozone+" µg/m³" : "--");
+    safeText("pm25",d.current.pm2_5?d.current.pm2_5+" µg/m³":"--");
+    safeText("pm10",d.current.pm10?d.current.pm10+" µg/m³":"--");
+    safeText("no2",d.current.nitrogen_dioxide?d.current.nitrogen_dioxide+" µg/m³":"--");
+    safeText("o3",d.current.ozone?d.current.ozone+" µg/m³":"--");
 
-    let status="Good",advice="Air is safe.",color="#009966";
-    if(aqi>50){status="Moderate";advice="Sensitive people reduce long exposure.";color="#ffcc00";}
-    if(aqi>100){status="Unhealthy for Sensitive Groups";advice="Limit outdoor activity.";color="#ff9933";}
+    let status="Good",advice="Ideal for all outdoor activities.",color="#009966";
+    if(aqi>50){status="Moderate";advice="Sensitive people reduce long exposure.";}
+    if(aqi>100){status="Unhealthy for Sensitive Groups";advice="Children & elderly stay cautious.";color="#ff9933";}
     if(aqi>150){status="Unhealthy";advice="Avoid outdoor activities.";color="#cc0033";}
-    if(aqi>200){status="Very Unhealthy";advice="Stay indoors.";color="#660099";}
+    if(aqi>200){status="Very Unhealthy";advice="Stay indoors. Use air purifier.";color="#660099";}
     if(aqi>300){status="Hazardous";advice="Health emergency conditions.";color="#7e0023";}
+
     el.style.color=color;
-
-    safeText("aqiStatus",status);
-    const adviceCard=document.getElementById("healthAdvice");
+    card.style.boxShadow="0 8px 24px "+color+"55";
+    safeText("aqiStatus",status+" (US AQI)");
     safeText("healthAdvice",advice);
-    adviceCard.style.border="2px solid "+color;
 
+    localStorage.setItem("lastAQI",JSON.stringify({aqi,label,time:Date.now()}));
     updateTime();
-  }).catch(()=>{
-    safeText("aqiStatus","AQI data unavailable");
-    safeText("healthAdvice","Check your connection.");
   });
 }
 
-/* ✅ PWA: SERVICE WORKER */
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js");
-  });
+/* ✅ SERVICE WORKER */
+if("serviceWorker"in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));
 }
-
-/* ✅ PWA: INSTALL PROMPT */
-let deferredPrompt;
-window.addEventListener("beforeinstallprompt", e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const btn = document.createElement("button");
-  btn.textContent = "➕ Install AQIproc";
-  btn.style.cssText = "position:fixed;bottom:20px;left:20px;padding:12px 20px;font-size:18px;border-radius:24px;background:#009966;color:#fff;border:none;cursor:pointer;z-index:999;";
-  document.body.appendChild(btn);
-  btn.addEventListener("click", async () => {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") btn.remove();
-    deferredPrompt = null;
-  });
-});
 </script>
 </body>
 </html>
