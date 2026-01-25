@@ -20,7 +20,7 @@
 }
 body.light{--bg:#f2f2f2;--card:rgba(255,255,255,0.75);--soft:rgba(255,255,255,0.9);--text:#111;--muted:#555;}
 body.dark{--bg:#121212;--card:rgba(30,30,30,0.75);--soft:rgba(255,255,255,0.08);--text:#fff;--muted:#bbb;}
-body.oled{--bg:#000000;--card:rgba(18,18,18,0.9);--soft:rgba(255,255,255,0.08);--text:#fff;--muted:#aaa;}
+body.oled{--bg:#000;--card:rgba(18,18,18,0.95);--soft:rgba(255,255,255,0.08);--text:#fff;--muted:#aaa;}
 
 *{box-sizing:border-box}
 body{
@@ -73,13 +73,10 @@ body{
   box-shadow:0 8px 24px rgba(0,0,0,.15);
 }
 
-.big{
-  font-size:72px;
-  font-weight:700;
-}
-
+.big{font-size:72px;font-weight:700;}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .small{font-size:18px;color:var(--muted);}
+
 button,input{
   background:var(--soft);
   border:none;
@@ -122,6 +119,8 @@ button,input{
 <input type="text" id="cityInput" placeholder="Search city in India">
 <button onclick="searchCity()">Search</button>
 <button onclick="detectLocation()">📍 Use My Location</button>
+
+<div id="installContainer"></div>
 
 <div class="footer">AQIproc © <span id="year"></span> Manik Roy. All Rights Reserved.</div>
 </div>
@@ -207,7 +206,7 @@ function fetchAQI(lat,lon,label){
     safeText("o3",d.current.ozone+" µg/m³");
 
     let status="Good",advice="Air is safe.",color="#009966";
-    if(aqi>50){status="Moderate";advice="Sensitive people reduce long exposure.";color="#ffde33";}
+    if(aqi>50){status="Moderate";advice="Sensitive people reduce long exposure.";color="#ffcc00";}
     if(aqi>100){status="Unhealthy for Sensitive Groups";advice="Limit outdoor activity.";color="#ff9933";}
     if(aqi>150){status="Unhealthy";advice="Avoid outdoor activities.";color="#cc0033";}
     if(aqi>200){status="Very Unhealthy";advice="Stay indoors.";color="#660099";}
@@ -220,6 +219,22 @@ function fetchAQI(lat,lon,label){
   });
 }
 
+/* PWA INSTALL BUTTON */
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const btn = document.createElement("button");
+  btn.textContent = "⬇ Install AQIproc";
+  btn.onclick = () => {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(()=>deferredPrompt=null);
+  };
+  document.getElementById("installContainer").appendChild(btn);
+});
+
+/* SW */
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js");
 }
