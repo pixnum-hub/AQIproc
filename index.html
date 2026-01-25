@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AQIproc</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<style>
+:root{
+  --bg:#f2f2f2;
+  --card:rgba(255,255,255,0.75);
+  --soft:rgba(255,255,255,0.9);
+  --text:#111;
+  --muted:#555;
+  --radius:26px;
+  --blur:16px;
+}
+body.light{--bg:#f2f2f2;--card:rgba(255,255,255,0.75);--soft:rgba(255,255,255,0.9);--text:#111;--muted:#555;}
+body.dark{--bg:#121212;--card:rgba(30,30,30,0.75);--soft:rgba(255,255,255,0.08);--text:#fff;--muted:#bbb;}
+body.oled{--bg:#000000;--card:rgba(18,18,18,0.9);--soft:rgba(255,255,255,0.08);--text:#fff;--muted:#aaa;}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  transition:.3s;
+}
+
+.app{
+  width:95%;
+  max-width:420px;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  position:relative;
+}
+
+.theme-toggle{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  border:none;
+  font-size:22px;
+  cursor:pointer;
+  background:var(--soft);
+  backdrop-filter:blur(var(--blur));
+}
+
+.header{
+  font-size:28px;
+  font-weight:700;
+  text-align:center;
+  margin-top:12px;
+}
+
+.card{
+  background:var(--card);
+  backdrop-filter:blur(var(--blur));
+  border-radius:var(--radius);
+  padding:18px;
+  text-align:center;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);
+}
+
+.big{
+  font-size:72px;
+  font-weight:700;
+}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.small{font-size:18px;color:var(--muted);}
+button,input{
+  background:var(--soft);
+  border:none;
+  padding:14px;
+  border-radius:20px;
+  font-size:18px;
+  color:var(--text);
+}
+
+.footer{
+  text-align:center;
+  font-size:14px;
+  color:var(--muted);
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body class="light">
+<div class="app">
+<button class="theme-toggle" onclick="toggleTheme()">🌞</button>
+<div class="header">🌫 AQIproc</div>
+
+<div class="card">
+  <div id="locationName">Loading Kolkata AQI…</div>
+  <div id="aqiValue" class="big">--</div>
+  <div id="aqiStatus" class="small">Fetching air quality…</div>
+  <div id="lastUpdated" class="small">Last updated: --</div>
+</div>
+
+<div class="grid">
+  <div class="card"><div class="small">PM2.5</div><div id="pm25">--</div></div>
+  <div class="card"><div class="small">PM10</div><div id="pm10">--</div></div>
+  <div class="card"><div class="small">NO₂</div><div id="no2">--</div></div>
+  <div class="card"><div class="small">O₃</div><div id="o3">--</div></div>
+</div>
+
+<div class="card" id="healthAdvice">Health advice will appear here.</div>
+
+<input type="text" id="cityInput" placeholder="Search city in India">
+<button onclick="searchCity()">Search</button>
+<button onclick="detectLocation()">📍 Use My Location</button>
+
+<div class="footer">AQIproc © <span id="year"></span> Manik Roy. All Rights Reserved.</div>
+</div>
+
+<script>
+document.getElementById("year").textContent=new Date().getFullYear();
+
+/* THEME */
+const body=document.body;
+setTheme(localStorage.getItem("theme")||"light");
+function setTheme(mode){
+  body.className=mode;
+  localStorage.setItem("theme",mode);
+  document.querySelector(".theme-toggle").textContent =
+    mode==="light"?"🌞":mode==="dark"?"🌙":"🖤";
+}
+function toggleTheme(){
+  if(body.classList.contains("light")) setTheme("dark");
+  else if(body.classList.contains("dark")) setTheme("oled");
+  else setTheme("light");
+}
+
+function safeText(id,v){document.getElementById(id).textContent=v;}
+function updateTime(){
+  const now=new Date();
+  safeText("lastUpdated","Last updated: "+now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+}
+
+/* DEFAULT KOLKATA */
+let locationUpdated=false;
+window.addEventListener("DOMContentLoaded",()=>{
+  fetchAQI(22.5726,88.3639,"Kolkata, India");
+  setTimeout(detectLocation,4000);
+});
+
+function detectLocation(){
+  if(!navigator.geolocation){ fallbackIP(); return; }
+  navigator.geolocation.getCurrentPosition(
+    pos=>{locationUpdated=true;fetchAQI(pos.coords.latitude,pos.coords.longitude,"Your Location");},
+    err=>fallbackIP(),
+    {timeout:8000}
+  );
+}
+
+async function fallbackIP(){
+  try{
+    const r=await fetch("https://ipwho.is/");
+    const d=await r.json();
+    if(d.success){
+      locationUpdated=true;
+      fetchAQI(d.latitude,d.longitude,d.city+", "+d.country);
+    }
+  }catch{
+    if(!locationUpdated) safeText("aqiStatus","Showing default city (Kolkata)");
+  }
+}
+
+function searchCity(){
+  const city=cityInput.value.trim();
+  if(!city) return;
+  fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&country=IN`)
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.results?.length){
+      const c=d.results[0];
+      fetchAQI(c.latitude,c.longitude,c.name+", "+c.country);
+    }else safeText("locationName","City not found in India");
+  });
+}
+
+function fetchAQI(lat,lon,label){
+  safeText("locationName",label);
+  fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5,pm10,nitrogen_dioxide,ozone`)
+  .then(r=>r.json())
+  .then(d=>{
+    const aqi=d.current.us_aqi;
+    const el=document.getElementById("aqiValue");
+
+    safeText("aqiValue",aqi);
+    safeText("pm25",d.current.pm2_5+" µg/m³");
+    safeText("pm10",d.current.pm10+" µg/m³");
+    safeText("no2",d.current.nitrogen_dioxide+" µg/m³");
+    safeText("o3",d.current.ozone+" µg/m³");
+
+    let status="Good",advice="Air is safe.",color="#009966";
+    if(aqi>50){status="Moderate";advice="Sensitive people reduce long exposure.";color="#ffde33";}
+    if(aqi>100){status="Unhealthy for Sensitive Groups";advice="Limit outdoor activity.";color="#ff9933";}
+    if(aqi>150){status="Unhealthy";advice="Avoid outdoor activities.";color="#cc0033";}
+    if(aqi>200){status="Very Unhealthy";advice="Stay indoors.";color="#660099";}
+    if(aqi>300){status="Hazardous";advice="Health emergency conditions.";color="#7e0023";}
+    el.style.color=color;
+
+    safeText("aqiStatus",status);
+    safeText("healthAdvice",advice);
+    updateTime();
+  });
+}
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+</body>
+</html>
