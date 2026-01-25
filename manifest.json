@@ -1,22 +1,31 @@
 {
   "name": "AQIproc",
   "short_name": "AQIproc",
-  "description": "Real-time air quality index for Indian cities",
+  "description": "Real-time Air Quality Index (AQI) with health guidance for India.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f2f2f2",
   "theme_color": "#009966",
-  "orientation": "portrait-primary",
+  "orientation": "portrait",
+  "scope": "./",
   "icons": [
     {
       "src": "icons/aqi-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "icons/aqi-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/aqi-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
