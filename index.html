@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AQIproc</title>
 
-<link rel="manifest" href="manifest.json">
+<!-- ✅ PWA Essentials -->
+<link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#000000">
 
 <style>
@@ -120,15 +121,13 @@ button,input{
 <button onclick="searchCity()">Search</button>
 <button onclick="detectLocation()">📍 Use My Location</button>
 
-<div id="installContainer"></div>
-
 <div class="footer">AQIproc © <span id="year"></span> Manik Roy. All Rights Reserved.</div>
 </div>
 
 <script>
 document.getElementById("year").textContent=new Date().getFullYear();
 
-/* THEME */
+/* 🌗 THEME SYSTEM */
 const body=document.body;
 setTheme(localStorage.getItem("theme")||"light");
 function setTheme(mode){
@@ -149,7 +148,7 @@ function updateTime(){
   safeText("lastUpdated","Last updated: "+now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
 }
 
-/* DEFAULT KOLKATA */
+/* 🌍 DEFAULT KOLKATA */
 let locationUpdated=false;
 window.addEventListener("DOMContentLoaded",()=>{
   fetchAQI(22.5726,88.3639,"Kolkata, India");
@@ -219,24 +218,11 @@ function fetchAQI(lat,lon,label){
   });
 }
 
-/* PWA INSTALL BUTTON */
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-
-  const btn = document.createElement("button");
-  btn.textContent = "⬇ Install AQIproc";
-  btn.onclick = () => {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(()=>deferredPrompt=null);
-  };
-  document.getElementById("installContainer").appendChild(btn);
-});
-
-/* SW */
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js");
+/* ✅ CLEAN SERVICE WORKER REGISTRATION */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js");
+  });
 }
 </script>
 </body>
