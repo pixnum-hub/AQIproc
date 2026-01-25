@@ -7,7 +7,10 @@
 
 <!-- ✅ PWA Essentials -->
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#009966">
+<link rel="apple-touch-icon" href="icons/aqi-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 
 <style>
 :root{
@@ -72,6 +75,7 @@ body{
   padding:18px;
   text-align:center;
   box-shadow:0 8px 24px rgba(0,0,0,.15);
+  transition:.3s;
 }
 
 .big{font-size:72px;font-weight:700;}
@@ -153,6 +157,7 @@ let locationUpdated=false;
 window.addEventListener("DOMContentLoaded",()=>{
   fetchAQI(22.5726,88.3639,"Kolkata, India");
   setTimeout(detectLocation,4000);
+  setInterval(()=>{ if(locationUpdated) detectLocation(); },600000); // Auto refresh 10 min
 });
 
 function detectLocation(){
@@ -190,19 +195,30 @@ function searchCity(){
   });
 }
 
+// Trigger search on Enter key
+cityInput.addEventListener("keypress", e=>{
+  if(e.key==="Enter") searchCity();
+});
+
 function fetchAQI(lat,lon,label){
   safeText("locationName",label);
   fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5,pm10,nitrogen_dioxide,ozone`)
   .then(r=>r.json())
   .then(d=>{
+    if(!d.current || d.current.us_aqi == null){
+      safeText("aqiStatus","AQI data unavailable");
+      safeText("healthAdvice","Try again later.");
+      return;
+    }
+
     const aqi=d.current.us_aqi;
     const el=document.getElementById("aqiValue");
 
     safeText("aqiValue",aqi);
-    safeText("pm25",d.current.pm2_5+" µg/m³");
-    safeText("pm10",d.current.pm10+" µg/m³");
-    safeText("no2",d.current.nitrogen_dioxide+" µg/m³");
-    safeText("o3",d.current.ozone+" µg/m³");
+    safeText("pm25", d.current.pm2_5 ? d.current.pm2_5+" µg/m³" : "--");
+    safeText("pm10", d.current.pm10 ? d.current.pm10+" µg/m³" : "--");
+    safeText("no2", d.current.nitrogen_dioxide ? d.current.nitrogen_dioxide+" µg/m³" : "--");
+    safeText("o3", d.current.ozone ? d.current.ozone+" µg/m³" : "--");
 
     let status="Good",advice="Air is safe.",color="#009966";
     if(aqi>50){status="Moderate";advice="Sensitive people reduce long exposure.";color="#ffcc00";}
@@ -213,17 +229,40 @@ function fetchAQI(lat,lon,label){
     el.style.color=color;
 
     safeText("aqiStatus",status);
+    const adviceCard=document.getElementById("healthAdvice");
     safeText("healthAdvice",advice);
+    adviceCard.style.border="2px solid "+color;
+
     updateTime();
+  }).catch(()=>{
+    safeText("aqiStatus","AQI data unavailable");
+    safeText("healthAdvice","Check your connection.");
   });
 }
 
-/* ✅ CLEAN SERVICE WORKER REGISTRATION */
+/* ✅ PWA: SERVICE WORKER */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js");
   });
 }
+
+/* ✅ PWA: INSTALL PROMPT */
+let deferredPrompt;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.createElement("button");
+  btn.textContent = "➕ Install AQIproc";
+  btn.style.cssText = "position:fixed;bottom:20px;left:20px;padding:12px 20px;font-size:18px;border-radius:24px;background:#009966;color:#fff;border:none;cursor:pointer;z-index:999;";
+  document.body.appendChild(btn);
+  btn.addEventListener("click", async () => {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") btn.remove();
+    deferredPrompt = null;
+  });
+});
 </script>
 </body>
 </html>
