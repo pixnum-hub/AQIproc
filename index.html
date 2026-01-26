@@ -38,10 +38,12 @@ body{
   justify-content:center;
   align-items:center;
   min-height:100vh;
+  padding:10px;
+  box-sizing:border-box;
 }
 
 .app{
-  width:95%;
+  width:100%;
   max-width:420px;
   border:1px solid rgba(255,255,255,0.15);
   border-radius:30px;
@@ -50,32 +52,52 @@ body{
   background:var(--card);
   text-align:center;
   position:relative;
+  box-sizing:border-box;
 }
 
-.topbar{position:relative;height:40px;margin-bottom:10px;}
+/* Topbar */
+.topbar{
+  position:relative;
+  height:50px;
+  margin-bottom:12px;
+}
 .header{
   position:absolute;
   left:50%;
   transform:translateX(-50%);
-  font-size:22px;
-  font-weight:600;
+  font-size:24px;
+  font-weight:700;
 }
 .toggle{
   position:absolute;
-  right:0; top:0;
-  width:42px;height:42px;border-radius:50%;
-  border:none;font-size:18px;cursor:pointer;
-  background:var(--card);color:var(--text);
+  right:0;
+  top:0;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:none;
+  font-size:18px;
+  cursor:pointer;
+  background:var(--card);
+  color:var(--text);
 }
 
 /* Search */
-.searchbar{margin:12px 0;display:flex;gap:6px;}
+.searchbar{
+  margin:12px 0;
+  display:flex;
+  gap:6px;
+}
 .searchbar input{
-  flex:1;padding:8px;border-radius:14px;border:none;font-size:14px;
+  flex:1;
+  padding:10px;
+  border-radius:14px;
+  border:none;
+  font-size:16px;
+  box-sizing:border-box;
 }
 .searchbar button{
-  padding:8px 12px;
-  border:none;
+  padding:10px 14px;
   border-radius:14px;
   background:rgba(255,255,255,0.15);
   color:var(--text);
@@ -90,40 +112,62 @@ body{
 
 /* Location */
 .location{
-  font-size:14px;
+  font-size:16px;
   color:var(--text);
   opacity:0.85;
-  margin-bottom:4px;
+  margin-bottom:8px;
   display:flex;
   align-items:center;
   justify-content:center;
   gap:6px;
 }
-.loc-icon{font-size:14px;opacity:0.9;}
+.loc-icon{font-size:16px;opacity:0.9;}
 
-.aqi-value{font-size:68px;font-weight:700;margin:12px 0;}
+/* AQI Value */
+.aqi-value{font-size:72px;font-weight:700;margin:12px 0;}
 .status{font-size:18px;margin-bottom:4px;}
 .updated{font-size:12px;color:var(--muted);margin-bottom:10px;}
 
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;}
-.card{padding:14px;border-radius:18px;background:var(--card);}
+/* Pollutants Grid */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));
+  gap:12px;
+  margin-top:10px;
+  justify-items:center;
+}
+.card{
+  width:100%;
+  max-width:140px;
+  padding:14px;
+  border-radius:18px;
+  background:var(--card);
+  text-align:center;
+  box-sizing:border-box;
+}
 .small{font-size:12px;color:var(--muted);}
 
+/* Horizontal scroll sections */
 .scroll-row{
   display:flex;
   overflow-x:auto;
   gap:10px;
   padding:10px 0;
   scroll-snap-type:x mandatory;
+  width:100%;
+  box-sizing:border-box;
+}
+.scroll-card, .hour-box{
+  flex-shrink:0;
+  scroll-snap-align:start;
 }
 .scroll-card{
   min-width:120px;
-  flex-shrink:0;
   padding:12px;
   border-radius:16px;
   background:var(--card);
-  scroll-snap-align:start;
   font-size:13px;
+  text-align:center;
 }
 .hour-box{
   min-width:70px;
@@ -131,36 +175,41 @@ body{
   padding:10px;
   border-radius:14px;
   background:var(--card);
-  flex-shrink:0;
 }
 .hour-time{font-size:11px;color:var(--muted);}
 .hour-aqi{font-size:18px;font-weight:600;}
 
+/* Footer */
 .footer{margin-top:18px;font-size:12px;color:var(--muted);}
 </style>
 </head>
 <body>
 
 <div class="app">
+  <!-- Topbar -->
   <div class="topbar">
     <div class="header">🌫 AQIproc</div>
     <button class="toggle" id="themeToggle" onclick="toggleMode()">🌙</button>
   </div>
 
+  <!-- Search -->
   <div class="searchbar">
     <input type="text" id="cityInput" placeholder="Search city...">
     <button onclick="searchCity()">Search</button>
   </div>
 
+  <!-- Location -->
   <div class="location">
     <span class="loc-icon">📍</span>
     <span id="locationName">Detecting location...</span>
   </div>
 
+  <!-- AQI Display -->
   <div class="aqi-value" id="aqiValue">--</div>
   <div class="status" id="aqiStatus">Loading...</div>
   <div class="updated" id="updatedTime"></div>
 
+  <!-- Pollutants -->
   <div class="grid">
     <div class="card"><div class="small">PM2.5</div><div id="pm25">--</div></div>
     <div class="card"><div class="small">PM10</div><div id="pm10">--</div></div>
@@ -170,6 +219,7 @@ body{
     <div class="card"><div class="small">CO</div><div id="co">--</div></div>
   </div>
 
+  <!-- AQI Health Scale -->
   <div class="small" style="margin-top:14px;">AQI Health Scale</div>
   <div class="scroll-row">
     <div class="scroll-card">0–50<br>Good</div>
@@ -180,9 +230,11 @@ body{
     <div class="scroll-card">301+<br>Hazardous</div>
   </div>
 
+  <!-- Hourly AQI -->
   <div class="small" style="margin-top:10px;">24 Hour AQI</div>
   <div class="scroll-row" id="hourlyAQI"></div>
 
+  <!-- Footer -->
   <div class="footer">© Manik Roy <span id="year"></span>. All Rights Reserved.</div>
 </div>
 
