@@ -1,247 +1,292 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>AQIproc</title>
 
-<!-- ✅ PWA Essentials -->
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#009966">
-<link rel="apple-touch-icon" href="icons/aqi-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="AQIproc">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#000000">
 
 <style>
 :root{
+  --bg:#0a0a0a;
+  --card:rgba(255,255,255,0.08);
+  --text:#ffffff;
+  --muted:#bbbbbb;
+}
+
+body[data-theme="light"]{
   --bg:#f2f2f2;
   --card:rgba(255,255,255,0.75);
-  --soft:rgba(255,255,255,0.9);
   --text:#111;
   --muted:#555;
-  --radius:26px;
-  --blur:16px;
 }
-body.light{--bg:#f2f2f2;--card:rgba(255,255,255,0.75);--soft:rgba(255,255,255,0.9);--text:#111;--muted:#555;}
-body.dark{--bg:#121212;--card:rgba(30,30,30,0.75);--soft:rgba(255,255,255,0.08);--text:#fff;--muted:#bbb;}
-body.oled{--bg:#000;--card:rgba(18,18,18,0.95);--soft:rgba(255,255,255,0.08);--text:#fff;--muted:#aaa;}
+body[data-theme="oled"]{
+  --bg:#000000;
+  --card:rgba(255,255,255,0.05);
+  --text:#fff;
+  --muted:#888;
+}
 
-*{box-sizing:border-box}
 body{
   margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-family:system-ui,Segoe UI,Roboto;
   background:var(--bg);
   color:var(--text);
   display:flex;
   justify-content:center;
-  transition:.3s;
+  align-items:center;
+  min-height:100vh;
 }
 
 .app{
   width:95%;
   max-width:420px;
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  gap:16px;
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:30px;
+  padding:26px 20px 20px;
+  backdrop-filter:blur(22px);
+  background:var(--card);
+  text-align:center;
   position:relative;
 }
 
-.theme-toggle{
-  position:absolute;
-  top:10px;
-  right:10px;
-  width:50px;
-  height:50px;
-  border-radius:50%;
-  border:none;
-  font-size:22px;
-  cursor:pointer;
-  background:var(--soft);
-  backdrop-filter:blur(var(--blur));
-}
-
+.topbar{position:relative;height:40px;margin-bottom:10px;}
 .header{
-  font-size:28px;
-  font-weight:700;
-  text-align:center;
-  margin-top:12px;
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:22px;
+  font-weight:600;
+}
+.toggle{
+  position:absolute;
+  right:0; top:0;
+  width:42px;height:42px;border-radius:50%;
+  border:none;font-size:18px;cursor:pointer;
+  background:var(--card);color:var(--text);
 }
 
-.card{
-  background:var(--card);
-  backdrop-filter:blur(var(--blur));
-  border-radius:var(--radius);
-  padding:18px;
-  text-align:center;
-  box-shadow:0 8px 24px rgba(0,0,0,.15);
-  transition:.3s;
+/* Search */
+.searchbar{margin:12px 0;display:flex;gap:6px;}
+.searchbar input{
+  flex:1;padding:8px;border-radius:14px;border:none;font-size:14px;
 }
-
-.big{font-size:72px;font-weight:700;}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.small{font-size:18px;color:var(--muted);}
-
-button,input{
-  background:var(--soft);
+.searchbar button{
+  padding:8px 12px;
   border:none;
-  padding:14px;
-  border-radius:20px;
-  font-size:18px;
+  border-radius:14px;
+  background:rgba(255,255,255,0.15);
   color:var(--text);
+  font-weight:600;
+  cursor:pointer;
+  backdrop-filter:blur(6px);
+  transition:0.2s ease;
+}
+.searchbar button:hover{
+  background:rgba(255,255,255,0.25);
 }
 
-.footer{
-  text-align:center;
+/* Location */
+.location{
   font-size:14px;
-  color:var(--muted);
-  margin-top:10px;
+  color:var(--text);
+  opacity:0.85;
+  margin-bottom:4px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
 }
+.loc-icon{font-size:14px;opacity:0.9;}
+
+.aqi-value{font-size:68px;font-weight:700;margin:12px 0;}
+.status{font-size:18px;margin-bottom:4px;}
+.updated{font-size:12px;color:var(--muted);margin-bottom:10px;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;}
+.card{padding:14px;border-radius:18px;background:var(--card);}
+.small{font-size:12px;color:var(--muted);}
+
+.scroll-row{
+  display:flex;
+  overflow-x:auto;
+  gap:10px;
+  padding:10px 0;
+  scroll-snap-type:x mandatory;
+}
+.scroll-card{
+  min-width:120px;
+  flex-shrink:0;
+  padding:12px;
+  border-radius:16px;
+  background:var(--card);
+  scroll-snap-align:start;
+  font-size:13px;
+}
+.hour-box{
+  min-width:70px;
+  text-align:center;
+  padding:10px;
+  border-radius:14px;
+  background:var(--card);
+  flex-shrink:0;
+}
+.hour-time{font-size:11px;color:var(--muted);}
+.hour-aqi{font-size:18px;font-weight:600;}
+
+.footer{margin-top:18px;font-size:12px;color:var(--muted);}
 </style>
 </head>
+<body>
 
-<body class="light">
 <div class="app">
-<button class="theme-toggle" onclick="toggleTheme()">🌞</button>
-<div class="header">🌫 AQIproc</div>
+  <div class="topbar">
+    <div class="header">🌫 AQIproc</div>
+    <button class="toggle" id="themeToggle" onclick="toggleMode()">🌙</button>
+  </div>
 
-<div class="card" id="mainCard">
-  <div id="locationName">Loading Kolkata AQI…</div>
-  <div id="aqiValue" class="big">--</div>
-  <div id="aqiStatus" class="small">Fetching air quality…</div>
-  <div id="lastUpdated" class="small">Last updated: --</div>
-</div>
+  <div class="searchbar">
+    <input type="text" id="cityInput" placeholder="Search city...">
+    <button onclick="searchCity()">Search</button>
+  </div>
 
-<div class="grid">
-  <div class="card"><div class="small">PM2.5</div><div id="pm25">--</div></div>
-  <div class="card"><div class="small">PM10</div><div id="pm10">--</div></div>
-  <div class="card"><div class="small">NO₂</div><div id="no2">--</div></div>
-  <div class="card"><div class="small">O₃</div><div id="o3">--</div></div>
-</div>
+  <div class="location">
+    <span class="loc-icon">📍</span>
+    <span id="locationName">Detecting location...</span>
+  </div>
 
-<div class="card" id="healthAdvice">Health advice will appear here.</div>
+  <div class="aqi-value" id="aqiValue">--</div>
+  <div class="status" id="aqiStatus">Loading...</div>
+  <div class="updated" id="updatedTime"></div>
 
-<input type="text" id="cityInput" placeholder="Search city in India">
-<button onclick="searchCity()">Search</button>
-<button onclick="detectLocation()">📍 Use My Location</button>
+  <div class="grid">
+    <div class="card"><div class="small">PM2.5</div><div id="pm25">--</div></div>
+    <div class="card"><div class="small">PM10</div><div id="pm10">--</div></div>
+    <div class="card"><div class="small">NO₂</div><div id="no2">--</div></div>
+    <div class="card"><div class="small">SO₂</div><div id="so2">--</div></div>
+    <div class="card"><div class="small">O₃</div><div id="o3">--</div></div>
+    <div class="card"><div class="small">CO</div><div id="co">--</div></div>
+  </div>
 
-<div class="footer">AQIproc © <span id="year"></span> Manik Roy. All Rights Reserved.</div>
+  <div class="small" style="margin-top:14px;">AQI Health Scale</div>
+  <div class="scroll-row">
+    <div class="scroll-card">0–50<br>Good</div>
+    <div class="scroll-card">51–100<br>Moderate</div>
+    <div class="scroll-card">101–150<br>Unhealthy (SG)</div>
+    <div class="scroll-card">151–200<br>Unhealthy</div>
+    <div class="scroll-card">201–300<br>Very Unhealthy</div>
+    <div class="scroll-card">301+<br>Hazardous</div>
+  </div>
+
+  <div class="small" style="margin-top:10px;">24 Hour AQI</div>
+  <div class="scroll-row" id="hourlyAQI"></div>
+
+  <div class="footer">© Manik Roy <span id="year"></span>. All Rights Reserved.</div>
 </div>
 
 <script>
 document.getElementById("year").textContent=new Date().getFullYear();
+function safeText(id,val){document.getElementById(id).textContent=val;}
 
-/* 🌗 THEME SYSTEM */
-const body=document.body;
-setTheme(localStorage.getItem("theme")||"light");
-function setTheme(mode){
-  body.className=mode;
-  localStorage.setItem("theme",mode);
-  document.querySelector(".theme-toggle").textContent =
-    mode==="light"?"🌞":mode==="dark"?"🌙":"🖤";
+/* Theme */
+const themes=["dark","light","oled"];
+const icons={dark:"🌙",light:"☀️",oled:"⚫"};
+let currentTheme=localStorage.getItem("theme")||"dark";
+applyTheme(currentTheme);
+function applyTheme(t){
+  document.body.setAttribute("data-theme",t);
+  document.getElementById("themeToggle").textContent=icons[t];
+  localStorage.setItem("theme",t);
 }
-function toggleTheme(){
-  if(body.classList.contains("light")) setTheme("dark");
-  else if(body.classList.contains("dark")) setTheme("oled");
-  else setTheme("light");
-}
-
-function safeText(id,v){document.getElementById(id).textContent=v;}
-function updateTime(){
-  safeText("lastUpdated","Last updated: "+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+function toggleMode(){
+  currentTheme=themes[(themes.indexOf(currentTheme)+1)%themes.length];
+  applyTheme(currentTheme);
 }
 
-/* 🌍 OFFLINE CACHE */
-const cached=localStorage.getItem("lastAQI");
-if(cached){
-  const c=JSON.parse(cached);
-  safeText("locationName",c.label+" (cached)");
-  safeText("aqiValue",c.aqi);
+/* AQI Color */
+function setAQIColor(aqi){
+  let c="#00e400";
+  if(aqi>50)c="#ffcc00";
+  if(aqi>100)c="#ff9933";
+  if(aqi>150)c="#cc0033";
+  if(aqi>200)c="#660099";
+  if(aqi>300)c="#7e0023";
+  document.getElementById("aqiValue").style.color=c;
 }
 
-/* 🌍 DEFAULT KOLKATA */
-let locationUpdated=false;
-window.addEventListener("DOMContentLoaded",()=>{
-  fetchAQI(22.5726,88.3639,"Kolkata, India");
-  setTimeout(detectLocation,4000);
-  setInterval(()=>{ if(locationUpdated) detectLocation(); },600000);
-});
-
-function detectLocation(){
-  if(!navigator.geolocation){ fallbackIP(); return; }
-  navigator.geolocation.getCurrentPosition(
-    p=>{locationUpdated=true;fetchAQI(p.coords.latitude,p.coords.longitude,"Your Location");},
-    ()=>fallbackIP(),
-    {timeout:8000}
-  );
-}
-
-async function fallbackIP(){
-  try{
-    const r=await fetch("https://ipwho.is/");
-    const d=await r.json();
-    if(d.success){
-      locationUpdated=true;
-      fetchAQI(d.latitude,d.longitude,d.city+", "+d.country);
-    }
-  }catch{
-    safeText("aqiStatus","Showing default city (Kolkata)");
+/* Hourly AQI */
+function drawHourlyAQI(data,times){
+  const container=document.getElementById("hourlyAQI");
+  container.innerHTML="";
+  for(let i=0;i<24;i++){
+    const box=document.createElement("div");
+    box.className="hour-box";
+    box.innerHTML=`<div class="hour-time">${times[i].split("T")[1].slice(0,5)}</div>
+                   <div class="hour-aqi">${Math.round(data[i])}</div>`;
+    container.appendChild(box);
   }
 }
 
+/* Fetch AQI */
+function fetchAQI(lat,lon,label){
+  document.getElementById("locationName").textContent=label||"Your Location";
+  safeText("aqiStatus","Loading...");
+  fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone&hourly=us_aqi`)
+  .then(r=>r.json()).then(d=>{
+    const c=d.current;
+    safeText("aqiValue",c.us_aqi);
+    setAQIColor(c.us_aqi);
+    safeText("pm25",c.pm2_5+" µg/m³");
+    safeText("pm10",c.pm10+" µg/m³");
+    safeText("no2",c.nitrogen_dioxide+" µg/m³");
+    safeText("so2",c.sulphur_dioxide+" µg/m³");
+    safeText("o3",c.ozone+" µg/m³");
+    safeText("co",c.carbon_monoxide+" µg/m³");
+    safeText("aqiStatus","Updated");
+    safeText("updatedTime","Updated: "+new Date().toLocaleTimeString());
+    drawHourlyAQI(d.hourly.us_aqi,d.hourly.time);
+  }).catch(()=>safeText("aqiStatus","Unable to load AQI data"));
+}
+
+/* Search */
 function searchCity(){
   const city=cityInput.value.trim();
   if(!city) return;
-  fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&country=IN`)
-  .then(r=>r.json())
-  .then(d=>{
-    if(d.results?.length){
-      const c=d.results[0];
-      fetchAQI(c.latitude,c.longitude,c.name+", "+c.country);
-    }else safeText("locationName","City not found in India");
-  });
-}
-cityInput.addEventListener("keypress",e=>{if(e.key==="Enter")searchCity();});
-
-function fetchAQI(lat,lon,label){
-  safeText("locationName",label);
-  fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5,pm10,nitrogen_dioxide,ozone`)
-  .then(r=>r.json())
-  .then(d=>{
-    if(!d.current || d.current.us_aqi==null) return;
-
-    const aqi=d.current.us_aqi;
-    const el=document.getElementById("aqiValue");
-    const card=document.getElementById("mainCard");
-
-    safeText("aqiValue",aqi);
-    safeText("pm25",d.current.pm2_5?d.current.pm2_5+" µg/m³":"--");
-    safeText("pm10",d.current.pm10?d.current.pm10+" µg/m³":"--");
-    safeText("no2",d.current.nitrogen_dioxide?d.current.nitrogen_dioxide+" µg/m³":"--");
-    safeText("o3",d.current.ozone?d.current.ozone+" µg/m³":"--");
-
-    let status="Good",advice="Ideal for all outdoor activities.",color="#009966";
-    if(aqi>50){status="Moderate";advice="Sensitive people reduce long exposure.";}
-    if(aqi>100){status="Unhealthy for Sensitive Groups";advice="Children & elderly stay cautious.";color="#ff9933";}
-    if(aqi>150){status="Unhealthy";advice="Avoid outdoor activities.";color="#cc0033";}
-    if(aqi>200){status="Very Unhealthy";advice="Stay indoors. Use air purifier.";color="#660099";}
-    if(aqi>300){status="Hazardous";advice="Health emergency conditions.";color="#7e0023";}
-
-    el.style.color=color;
-    card.style.boxShadow="0 8px 24px "+color+"55";
-    safeText("aqiStatus",status+" (US AQI)");
-    safeText("healthAdvice",advice);
-
-    localStorage.setItem("lastAQI",JSON.stringify({aqi,label,time:Date.now()}));
-    updateTime();
+  fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`)
+  .then(r=>r.json()).then(d=>{
+    const loc=d.results[0];
+    fetchAQI(loc.latitude,loc.longitude,loc.name+", "+loc.country);
   });
 }
 
-/* ✅ SERVICE WORKER */
-if("serviceWorker"in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));
+/* Location */
+function detectLocation(){
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      pos=>fetchAQI(pos.coords.latitude,pos.coords.longitude,"Your Location"),
+      ()=>ipFallback()
+    );
+  } else ipFallback();
+}
+function ipFallback(){
+  fetch("https://ipapi.co/json/")
+  .then(r=>r.json())
+  .then(d=>{
+    const city=d.city||"Kolkata";
+    const region=d.region?", "+d.region:"";
+    fetchAQI(d.latitude,d.longitude,city+region);
+  })
+  .catch(()=>fetchAQI(22.5726,88.3639,"Kolkata"));
+}
+
+detectLocation();
+setInterval(detectLocation,600000);
+
+/* PWA */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("./sw.js");
 }
 </script>
 </body>
