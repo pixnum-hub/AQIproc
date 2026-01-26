@@ -1,47 +1,41 @@
-const CACHE_NAME = "aqiproc-v1";
-const STATIC_ASSETS = [
+const CACHE_NAME = "aqiproc-cache-v1";
+const urlsToCache = [
   "./",
   "./index.html",
-  "./manifest.json",
-  "./icons/aqi-192.png",
-  "./icons/aqi-512.png"
+  "./manifest.json"
 ];
 
-/* 🔧 INSTALL */
+// Install SW
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
   self.skipWaiting();
 });
 
-/* ♻ ACTIVATE */
+// Activate SW
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+        keys.filter(key => key !== CACHE_NAME)
+            .map(key => caches.delete(key))
       )
     )
   );
   self.clients.claim();
 });
 
-/* 🌐 FETCH STRATEGY */
+// Fetch Strategy (Network first, fallback to cache)
 self.addEventListener("fetch", event => {
-  const req = event.request;
-  const url = new URL(req.url);
-
-  // AQI API → Network first
-  if (url.hostname.includes("open-meteo.com")) {
-    event.respondWith(
-      fetch(req).catch(() => caches.match(req))
-    );
-    return;
-  }
-
-  // Static files → Cache first
   event.respondWith(
-    caches.match(req).then(res => res || fetch(req))
+    fetch(event.request)
+      .then(response => {
+        return caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, response.clone());
+          return response;
+        });
+      })
+      .catch(() => caches.match(event.request))
   );
 });
