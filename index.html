@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AQIproc</title>
+
+<!-- PWA Manifest & Theme -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4a7cff">
+
 <style>
 :root{
   --bg:#000;
@@ -118,7 +123,6 @@ button:hover{
 .scroll::-webkit-scrollbar{
   display:none;
 }
-
 .scroll div{
   flex:0 0 auto;
   min-width:70px;
@@ -302,7 +306,6 @@ async function fetchAQI(lat, lon, place) {
       const no2h  = d.hourly.nitrogen_dioxide?.[i+x] ?? 0;
       const so2h  = d.hourly.sulphur_dioxide?.[i+x] ?? 0;
       const hourAQI = calculateAQI(pm25h, pm10h, no2h, so2h);
-
       const timeStr = new Date(d.hourly.time[i+x]).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
       h.innerHTML += `<div class="${aqiColor(hourAQI)}">${timeStr}<br>${hourAQI}</div>`;
     }
@@ -357,6 +360,15 @@ function loadLocation() {
 
 /* INITIAL LOAD */
 loadLocation();
+
+/* REGISTER SERVICE WORKER */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service Worker registered.', reg))
+      .catch(err => console.warn('Service Worker registration failed:', err));
+  });
+}
 </script>
 
 </body>
