@@ -267,7 +267,7 @@ function healthText(a) {
   return "Hazardous air. Stay indoors.";
 }
 
-/* FETCH AIR QUALITY FROM OPEN-METEO */
+/* FETCH AIR QUALITY */
 async function fetchAQI(lat, lon, place) {
   try {
     const r = await fetch(`https://api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide&timezone=auto`);
@@ -294,7 +294,6 @@ async function fetchAQI(lat, lon, place) {
     document.getElementById("no2").textContent = no2.toFixed(1);
     document.getElementById("so2").textContent = so2.toFixed(1);
 
-    /* Hourly AQI display (next 12 hours) with time labels */
     const h = document.getElementById("hourly");
     h.innerHTML = "";
     for (let x = 0; x < 12; x++) {
@@ -322,6 +321,7 @@ async function fetchAQI(lat, lon, place) {
   }
 }
 
+/* CITY SEARCH */
 function searchCity() {
   const city = document.getElementById("cityInput").value;
   if (!city) return;
@@ -330,14 +330,33 @@ function searchCity() {
     .then(d => { if (d[0]) fetchAQI(d[0].lat, d[0].lon, d[0].display_name); });
 }
 
-/* GPS + IP fallback */
-navigator.geolocation.getCurrentPosition(
-  p => fetchAQI(p.coords.latitude, p.coords.longitude, "Your Location"),
-  () => fetch("https://ipapi.co/json/")
-        .then(r => r.json())
-        .then(d => fetchAQI(d.latitude, d.longitude, d.city + ", " + d.country))
-        .catch(() => fetchAQI(22.5726, 88.3639, "Kolkata, India"))
-);
+/* AUTO LOCATION: GPS first, then IP fallback */
+function loadLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      p => fetchAQI(p.coords.latitude, p.coords.longitude, "Your Location"),
+      err => {
+        console.warn("GPS denied/fails:", err.message);
+        document.getElementById("place").textContent = "Using approximate location…";
+        fetch("https://ipapi.co/json/")
+          .then(r => r.json())
+          .then(d => fetchAQI(d.latitude, d.longitude, d.city + ", " + d.country))
+          .catch(() => fetchAQI(22.5726, 88.3639, "Kolkata, India"));
+      },
+      { enableHighAccuracy:true, timeout:10000 }
+    );
+  } else {
+    console.warn("Geolocation not supported");
+    document.getElementById("place").textContent = "Using approximate location…";
+    fetch("https://ipapi.co/json/")
+      .then(r => r.json())
+      .then(d => fetchAQI(d.latitude, d.longitude, d.city + ", " + d.country))
+      .catch(() => fetchAQI(22.5726, 88.3639, "Kolkata, India"));
+  }
+}
+
+/* INITIAL LOAD */
+loadLocation();
 </script>
 
 </body>
