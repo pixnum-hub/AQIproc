@@ -1,345 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AQIproc</title>
-
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#000000">
-
 <style>
 :root{
-  --bg:#0a0a0a;
+  --bg:#000;
   --card:rgba(255,255,255,0.08);
-  --text:#ffffff;
-  --muted:#bbbbbb;
-}
-
-body[data-theme="light"]{
-  --bg:#f2f2f2;
-  --card:rgba(255,255,255,0.75);
-  --text:#111;
-  --muted:#555;
-}
-body[data-theme="oled"]{
-  --bg:#000000;
-  --card:rgba(255,255,255,0.05);
   --text:#fff;
-  --muted:#888;
+  --sub:#aaa;
 }
-
+body.light{
+  --bg:#f4f6f8;
+  --card:#ffffff;
+  --text:#000;
+  --sub:#444;
+}
 body{
   margin:0;
-  font-family:system-ui,Segoe UI,Roboto;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont;
   background:var(--bg);
   color:var(--text);
   display:flex;
   justify-content:center;
-  align-items:center;
-  min-height:100vh;
-  padding:10px;
-  box-sizing:border-box;
 }
-
 .app{
   width:100%;
   max-width:420px;
-  border:1px solid rgba(255,255,255,0.15);
-  border-radius:30px;
-  padding:26px 20px 20px;
-  backdrop-filter:blur(22px);
-  background:var(--card);
-  text-align:center;
-  position:relative;
-  box-sizing:border-box;
-}
-
-/* Topbar */
-.topbar{
-  position:relative;
-  height:50px;
-  margin-bottom:12px;
+  padding:14px;
 }
 .header{
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:24px;
-  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.header h2{
+  margin:0;
+  flex:1;
+  text-align:center;
 }
 .toggle{
-  position:absolute;
-  right:0;
-  top:0;
   width:42px;
   height:42px;
   border-radius:50%;
   border:none;
-  font-size:18px;
-  cursor:pointer;
   background:var(--card);
   color:var(--text);
-}
-
-/* Search */
-.searchbar{
-  margin:12px 0;
-  display:flex;
-  gap:6px;
-}
-.searchbar input{
-  flex:1;
-  padding:10px;
-  border-radius:14px;
-  border:none;
-  font-size:16px;
-  box-sizing:border-box;
-}
-.searchbar button{
-  padding:10px 14px;
-  border-radius:14px;
-  background:rgba(255,255,255,0.15);
-  color:var(--text);
-  font-weight:600;
-  cursor:pointer;
-  backdrop-filter:blur(6px);
-  transition:0.2s ease;
-}
-.searchbar button:hover{
-  background:rgba(255,255,255,0.25);
-}
-
-/* Location */
-.location{
-  font-size:16px;
-  color:var(--text);
-  opacity:0.85;
-  margin-bottom:8px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-}
-.loc-icon{font-size:16px;opacity:0.9;}
-
-/* AQI Value */
-.aqi-value{font-size:72px;font-weight:700;margin:12px 0;}
-.status{font-size:18px;margin-bottom:4px;}
-.updated{font-size:12px;color:var(--muted);margin-bottom:10px;}
-
-/* Pollutants Grid */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));
-  gap:12px;
-  margin-top:10px;
-  justify-items:center;
+  font-size:18px;
 }
 .card{
-  width:100%;
-  max-width:140px;
-  padding:14px;
+  background:var(--card);
+  backdrop-filter:blur(14px);
   border-radius:18px;
-  background:var(--card);
-  text-align:center;
-  box-sizing:border-box;
+  padding:16px;
+  margin-top:14px;
 }
-.small{font-size:12px;color:var(--muted);}
-
-/* Horizontal scroll sections */
-.scroll-row{
-  display:flex;
-  overflow-x:auto;
-  gap:10px;
-  padding:10px 0;
-  scroll-snap-type:x mandatory;
+input,button{
   width:100%;
-  box-sizing:border-box;
-}
-.scroll-card, .hour-box{
-  flex-shrink:0;
-  scroll-snap-align:start;
-}
-.scroll-card{
-  min-width:120px;
   padding:12px;
-  border-radius:16px;
-  background:var(--card);
-  font-size:13px;
+  border-radius:12px;
+  border:none;
+  font-size:16px;
+}
+button{
+  margin-top:8px;
+  background:#4a7cff;
+  color:#fff;
+}
+.aqi-center{
   text-align:center;
 }
-.hour-box{
-  min-width:70px;
-  text-align:center;
+.aqi-center h1{
+  font-size:44px;
+  margin:8px 0;
+}
+.aqi-center h3{
+  margin:0;
+  font-weight:500;
+}
+.aqi-center p{
+  margin-top:6px;
+  font-size:16px;
+  color:var(--sub);
+}
+.scroll{
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+}
+.scroll div{
+  min-width:80px;
   padding:10px;
-  border-radius:14px;
-  background:var(--card);
+  background:rgba(255,255,255,0.12);
+  border-radius:12px;
+  text-align:center;
 }
-.hour-time{font-size:11px;color:var(--muted);}
-.hour-aqi{font-size:18px;font-weight:600;}
+.footer{
+  text-align:center;
+  font-size:13px;
+  color:var(--sub);
+  margin-top:18px;
+}
 
-/* Footer */
-.footer{margin-top:18px;font-size:12px;color:var(--muted);}
+/* AQI NUMBER COLORS ONLY */
+.aqi-good{color:#4caf50;}
+.aqi-moderate{color:#c0ca33;}
+.aqi-unhealthy{color:#fb8c00;}
+.aqi-very{color:#e53935;}
+.aqi-hazard{color:#8e24aa;}
 </style>
 </head>
-<body>
 
+<body class="oled">
 <div class="app">
-  <!-- Topbar -->
-  <div class="topbar">
-    <div class="header">🌫 AQIproc</div>
-    <button class="toggle" id="themeToggle" onclick="toggleMode()">🌙</button>
+
+<div class="header">
+  <div></div>
+  <h2>AQIproc</h2>
+  <button class="toggle" onclick="toggleMode()">🌓</button>
+</div>
+
+<div class="card">
+  <input id="cityInput" placeholder="Search city">
+  <button onclick="searchCity()">Search</button>
+</div>
+
+<div class="card aqi-center">
+  <h3 id="place">Detecting location…</h3>
+  <h1 id="aqi">AQI --</h1>
+  <p id="health">Loading air quality…</p>
+</div>
+
+<div class="card">
+  <h4>Pollutant Levels (µg/m³)</h4>
+  <div class="scroll">
+    <div>PM2.5<br><strong id="pm25">--</strong></div>
+    <div>PM10<br><strong id="pm10">--</strong></div>
+    <div>NO₂<br><strong id="no2">--</strong></div>
+    <div>SO₂<br><strong id="so2">--</strong></div>
   </div>
+</div>
 
-  <!-- Search -->
-  <div class="searchbar">
-    <input type="text" id="cityInput" placeholder="Search city...">
-    <button onclick="searchCity()">Search</button>
-  </div>
+<div class="card">
+  <h4>Hourly AQI</h4>
+  <div class="scroll" id="hourly"></div>
+</div>
 
-  <!-- Location -->
-  <div class="location">
-    <span class="loc-icon">📍</span>
-    <span id="locationName">Detecting location...</span>
-  </div>
+<div class="footer">
+  © <span id="year"></span> Manik Roy · All Rights Reserved
+</div>
 
-  <!-- AQI Display -->
-  <div class="aqi-value" id="aqiValue">--</div>
-  <div class="status" id="aqiStatus">Loading...</div>
-  <div class="updated" id="updatedTime"></div>
-
-  <!-- Pollutants -->
-  <div class="grid">
-    <div class="card"><div class="small">PM2.5</div><div id="pm25">--</div></div>
-    <div class="card"><div class="small">PM10</div><div id="pm10">--</div></div>
-    <div class="card"><div class="small">NO₂</div><div id="no2">--</div></div>
-    <div class="card"><div class="small">SO₂</div><div id="so2">--</div></div>
-    <div class="card"><div class="small">O₃</div><div id="o3">--</div></div>
-    <div class="card"><div class="small">CO</div><div id="co">--</div></div>
-  </div>
-
-  <!-- AQI Health Scale -->
-  <div class="small" style="margin-top:14px;">AQI Health Scale</div>
-  <div class="scroll-row">
-    <div class="scroll-card">0–50<br>Good</div>
-    <div class="scroll-card">51–100<br>Moderate</div>
-    <div class="scroll-card">101–150<br>Unhealthy (SG)</div>
-    <div class="scroll-card">151–200<br>Unhealthy</div>
-    <div class="scroll-card">201–300<br>Very Unhealthy</div>
-    <div class="scroll-card">301+<br>Hazardous</div>
-  </div>
-
-  <!-- Hourly AQI -->
-  <div class="small" style="margin-top:10px;">24 Hour AQI</div>
-  <div class="scroll-row" id="hourlyAQI"></div>
-
-  <!-- Footer -->
-  <div class="footer">© Manik Roy <span id="year"></span>. All Rights Reserved.</div>
 </div>
 
 <script>
 document.getElementById("year").textContent=new Date().getFullYear();
-function safeText(id,val){document.getElementById(id).textContent=val;}
 
-/* Theme */
-const themes=["dark","light","oled"];
-const icons={dark:"🌙",light:"☀️",oled:"⚫"};
-let currentTheme=localStorage.getItem("theme")||"dark";
-applyTheme(currentTheme);
-function applyTheme(t){
-  document.body.setAttribute("data-theme",t);
-  document.getElementById("themeToggle").textContent=icons[t];
-  localStorage.setItem("theme",t);
-}
+/* THEME TOGGLE */
+let mode=0;
 function toggleMode(){
-  currentTheme=themes[(themes.indexOf(currentTheme)+1)%themes.length];
-  applyTheme(currentTheme);
+  mode=(mode+1)%3;
+  document.body.className=mode===1?"light":mode===2?"oled":"";
 }
 
-/* AQI Color */
-function setAQIColor(aqi){
-  let c="#00e400";
-  if(aqi>50)c="#ffcc00";
-  if(aqi>100)c="#ff9933";
-  if(aqi>150)c="#cc0033";
-  if(aqi>200)c="#660099";
-  if(aqi>300)c="#7e0023";
-  document.getElementById("aqiValue").style.color=c;
+/* CPCB CALCULATION */
+function calcSubIndex(C,bp){
+  for(let i=0;i<bp.length;i++){
+    let [cl,ch,il,ih]=bp[i];
+    if(C>=cl && C<=ch){
+      return ((ih-il)/(ch-cl))*(C-cl)+il;
+    }
+  }
+  return 0;
 }
 
-/* Hourly AQI */
-function drawHourlyAQI(data,times){
-  const container=document.getElementById("hourlyAQI");
-  container.innerHTML="";
-  for(let i=0;i<24;i++){
-    const box=document.createElement("div");
-    box.className="hour-box";
-    box.innerHTML=`<div class="hour-time">${times[i].split("T")[1].slice(0,5)}</div>
-                   <div class="hour-aqi">${Math.round(data[i])}</div>`;
-    container.appendChild(box);
+function calculateAQI(pm25,pm10,no2,so2){
+  const bp25=[[0,30,0,50],[31,60,51,100],[61,90,101,200],[91,120,201,300],[121,250,301,500]];
+  const bp10=[[0,50,0,50],[51,100,51,100],[101,250,101,200],[251,350,201,300],[351,430,301,500]];
+  const bpNO2=[[0,40,0,50],[41,80,51,100],[81,180,101,200],[181,280,201,300],[281,400,301,500]];
+  const bpSO2=[[0,40,0,50],[41,80,51,100],[81,380,101,200],[381,800,201,300],[801,1600,301,500]];
+
+  return Math.round(Math.max(
+    calcSubIndex(pm25,bp25),
+    calcSubIndex(pm10,bp10),
+    calcSubIndex(no2,bpNO2),
+    calcSubIndex(so2,bpSO2)
+  ));
+}
+
+function aqiColor(a){
+  if(a<=50) return "aqi-good";
+  if(a<=100) return "aqi-moderate";
+  if(a<=200) return "aqi-unhealthy";
+  if(a<=300) return "aqi-very";
+  return "aqi-hazard";
+}
+function healthText(a){
+  if(a<=50) return "Good air quality. Safe to breathe.";
+  if(a<=100) return "Moderate air. Sensitive people take care.";
+  if(a<=200) return "Unhealthy air. Reduce outdoor activity.";
+  if(a<=300) return "Very unhealthy. Avoid outdoor exposure.";
+  return "Hazardous air. Stay indoors.";
+}
+
+/* FETCH REAL POLLUTANTS SAFELY */
+async function fetchAQI(lat, lon, place){
+  try{
+    const r=await fetch(
+      `https://api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide&timezone=auto`
+    );
+    const d=await r.json();
+    if(!d.hourly || !d.hourly.time) throw "No hourly data";
+
+    const now=new Date().toISOString().slice(0,13);
+    const idx=d.hourly.time.findIndex(t=>t.startsWith(now));
+    const i=idx>=0?idx:0;
+
+    const pm25=d.hourly.pm2_5?.[i] ?? 0;
+    const pm10=d.hourly.pm10?.[i] ?? 0;
+    const no2=d.hourly.nitrogen_dioxide?.[i] ?? 0;
+    const so2=d.hourly.sulphur_dioxide?.[i] ?? 0;
+
+    document.getElementById("pm25").textContent=pm25.toFixed(1);
+    document.getElementById("pm10").textContent=pm10.toFixed(1);
+    document.getElementById("no2").textContent=no2.toFixed(1);
+    document.getElementById("so2").textContent=so2.toFixed(1);
+
+    const aqi=calculateAQI(pm25,pm10,no2,so2);
+    const aqiEl=document.getElementById("aqi");
+    aqiEl.textContent="AQI "+aqi;
+    aqiEl.className=aqiColor(aqi);
+
+    document.getElementById("place").textContent=place;
+    document.getElementById("health").textContent=healthText(aqi);
+
+    const h=document.getElementById("hourly");
+    h.innerHTML="";
+    for(let x=0;x<12;x++) h.innerHTML+=`<div>${aqi}</div>`;
+  }catch(e){
+    console.error(e);
+    document.getElementById("place").textContent=place;
+    document.getElementById("health").textContent="Air data temporarily unavailable.";
   }
 }
 
-/* Fetch AQI */
-function fetchAQI(lat,lon,label){
-  document.getElementById("locationName").textContent=label||"Your Location";
-  safeText("aqiStatus","Loading...");
-  fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone&hourly=us_aqi`)
-  .then(r=>r.json()).then(d=>{
-    const c=d.current;
-    safeText("aqiValue",c.us_aqi);
-    setAQIColor(c.us_aqi);
-    safeText("pm25",c.pm2_5+" µg/m³");
-    safeText("pm10",c.pm10+" µg/m³");
-    safeText("no2",c.nitrogen_dioxide+" µg/m³");
-    safeText("so2",c.sulphur_dioxide+" µg/m³");
-    safeText("o3",c.ozone+" µg/m³");
-    safeText("co",c.carbon_monoxide+" µg/m³");
-    safeText("aqiStatus","Updated");
-    safeText("updatedTime","Updated: "+new Date().toLocaleTimeString());
-    drawHourlyAQI(d.hourly.us_aqi,d.hourly.time);
-  }).catch(()=>safeText("aqiStatus","Unable to load AQI data"));
-}
-
-/* Search */
 function searchCity(){
-  const city=cityInput.value.trim();
+  const city=document.getElementById("cityInput").value;
   if(!city) return;
-  fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`)
-  .then(r=>r.json()).then(d=>{
-    const loc=d.results[0];
-    fetchAQI(loc.latitude,loc.longitude,loc.name+", "+loc.country);
-  });
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`)
+    .then(r=>r.json())
+    .then(d=>{ if(d[0]) fetchAQI(d[0].lat,d[0].lon,d[0].display_name); });
 }
 
-/* Location */
-function detectLocation(){
-  if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(
-      pos=>fetchAQI(pos.coords.latitude,pos.coords.longitude,"Your Location"),
-      ()=>ipFallback()
-    );
-  } else ipFallback();
-}
-function ipFallback(){
-  fetch("https://ipapi.co/json/")
-  .then(r=>r.json())
-  .then(d=>{
-    const city=d.city||"Kolkata";
-    const region=d.region?", "+d.region:"";
-    fetchAQI(d.latitude,d.longitude,city+region);
-  })
-  .catch(()=>fetchAQI(22.5726,88.3639,"Kolkata"));
-}
-
-detectLocation();
-setInterval(detectLocation,600000);
-
-/* PWA */
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("./sw.js");
-}
+navigator.geolocation.getCurrentPosition(
+  p=>fetchAQI(p.coords.latitude,p.coords.longitude,"Your Location"),
+  ()=>fetch("https://ipapi.co/json/")
+        .then(r=>r.json())
+        .then(d=>fetchAQI(d.latitude,d.longitude,d.city+", "+d.country))
+        .catch(()=>fetchAQI(22.5726,88.3639,"Kolkata, India"))
+);
 </script>
 </body>
 </html>
