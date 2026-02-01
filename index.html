@@ -25,21 +25,27 @@ body{
   display:flex;
   justify-content:center;
 }
+
 .app{
   width:100%;
-  max-width:420px;
+  max-width:480px;
   padding:14px;
+  box-sizing:border-box;
 }
+
 .header{
   display:flex;
   align-items:center;
   justify-content:space-between;
+  padding:4px 0;
 }
 .header h2{
   margin:0;
   flex:1;
   text-align:center;
+  font-size:1.5rem;
 }
+
 .toggle{
   width:42px;
   height:42px;
@@ -47,60 +53,103 @@ body{
   border:none;
   background:var(--card);
   color:var(--text);
-  font-size:18px;
+  font-size:20px;
+  cursor:pointer;
 }
+
+/* Cards */
 .card{
   background:var(--card);
   backdrop-filter:blur(14px);
-  border-radius:18px;
-  padding:16px;
+  border-radius:16px;
+  padding:14px;
   margin-top:14px;
+  box-sizing:border-box;
 }
-input,button{
+
+/* Inputs and Buttons */
+input, button{
   width:100%;
   padding:12px;
   border-radius:12px;
   border:none;
   font-size:16px;
+  box-sizing:border-box;
 }
 button{
   margin-top:8px;
   background:#4a7cff;
   color:#fff;
+  cursor:pointer;
+  transition:0.2s;
 }
+button:hover{
+  opacity:0.9;
+}
+
+/* AQI Center */
 .aqi-center{
   text-align:center;
 }
 .aqi-center h1{
-  font-size:44px;
+  font-size:3rem;
   margin:8px 0;
+  word-wrap:break-word;
 }
 .aqi-center h3{
   margin:0;
   font-weight:500;
+  font-size:1.2rem;
 }
 .aqi-center p{
   margin-top:6px;
-  font-size:16px;
+  font-size:0.95rem;
   color:var(--sub);
 }
+
+/* Horizontal scroll sections */
 .scroll{
   display:flex;
   gap:10px;
   overflow-x:auto;
+  padding-bottom:4px;
+  -webkit-overflow-scrolling:touch;
 }
+.scroll::-webkit-scrollbar{
+  display:none;
+}
+
 .scroll div{
-  min-width:80px;
-  padding:10px;
+  flex:0 0 auto;
+  min-width:70px;
   background:rgba(255,255,255,0.12);
   border-radius:12px;
   text-align:center;
+  padding:8px 6px;
+  font-size:0.85rem;
+  box-sizing:border-box;
 }
+
+/* Hourly AQI cards */
+#hourly div{
+  padding:10px 6px;
+  min-width:70px;
+  border-radius:14px;
+  font-size:0.85rem;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+/* Footer */
 .footer{
   text-align:center;
   font-size:13px;
   color:var(--sub);
   margin-top:18px;
+  word-wrap:break-word;
 }
 
 /* AQI NUMBER COLORS ONLY */
@@ -109,108 +158,121 @@ button{
 .aqi-unhealthy{color:#fb8c00;}
 .aqi-very{color:#e53935;}
 .aqi-hazard{color:#8e24aa;}
+
+/* Mobile-first adjustments */
+@media (max-width:420px){
+  .header h2{ font-size:1.3rem; }
+  .aqi-center h1{ font-size:2.5rem; }
+  input, button{ font-size:15px; }
+  #hourly div{ min-width:60px; font-size:0.8rem; padding:8px 4px; }
+}
 </style>
 </head>
-<body class="oled">
+<body>
 
 <div class="app">
 
-<div class="header">
-  <div></div>
-  <h2>AQIproc</h2>
-  <button class="toggle" onclick="toggleMode()">🌓</button>
-</div>
-
-<div class="card">
-  <input id="cityInput" placeholder="Search city">
-  <button onclick="searchCity()">Search</button>
-</div>
-
-<div class="card aqi-center">
-  <h3 id="place">Detecting location…</h3>
-  <h1 id="aqi">AQI --</h1>
-  <p id="health">Loading air quality…</p>
-</div>
-
-<div class="card">
-  <h4>Pollutant Levels (µg/m³)</h4>
-  <div class="scroll">
-    <div>PM2.5<br><strong id="pm25">--</strong></div>
-    <div>PM10<br><strong id="pm10">--</strong></div>
-    <div>NO₂<br><strong id="no2">--</strong></div>
-    <div>SO₂<br><strong id="so2">--</strong></div>
+  <div class="header">
+    <div></div>
+    <h2>AQIproc</h2>
+    <button class="toggle" onclick="toggleMode()">🌓</button>
   </div>
-</div>
 
-<div class="card">
-  <h4>Hourly AQI</h4>
-  <div class="scroll" id="hourly"></div>
-</div>
+  <div class="card">
+    <input id="cityInput" placeholder="Search city">
+    <button onclick="searchCity()">Search</button>
+  </div>
 
-<div class="footer">
-  © <span id="year"></span> Manik Roy · All Rights Reserved
-</div>
+  <div class="card aqi-center">
+    <h3 id="place">Detecting location…</h3>
+    <h1 id="aqi">AQI --</h1>
+    <p id="health">Loading air quality…</p>
+  </div>
+
+  <div class="card">
+    <h4>Pollutant Levels (µg/m³)</h4>
+    <div class="scroll">
+      <div>PM2.5<br><strong id="pm25">--</strong></div>
+      <div>PM10<br><strong id="pm10">--</strong></div>
+      <div>NO₂<br><strong id="no2">--</strong></div>
+      <div>SO₂<br><strong id="so2">--</strong></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>Hourly AQI</h4>
+    <div class="scroll" id="hourly"></div>
+  </div>
+
+  <div class="footer">
+    © <span id="year"></span> Manik Roy · All Rights Reserved
+  </div>
 
 </div>
 
 <script>
-document.getElementById("year").textContent=new Date().getFullYear();
+document.getElementById("year").textContent = new Date().getFullYear();
 
-/* THEME TOGGLE */
-let mode=0;
-function toggleMode(){
-  mode=(mode+1)%3;
-  document.body.className=mode===1?"light":mode===2?"oled":"";
+/* THEME TOGGLE WITH PERSISTENCE */
+let mode = localStorage.getItem("themeMode") || 0;
+mode = parseInt(mode);
+setTheme(mode);
+
+function toggleMode() {
+  mode = (mode + 1) % 3;
+  setTheme(mode);
+  localStorage.setItem("themeMode", mode);
+}
+
+function setTheme(m) {
+  document.body.className = m === 1 ? "light" : m === 2 ? "oled" : "";
 }
 
 /* AQI calculation */
-function calcSubIndex(C,bp){
-  for(let i=0;i<bp.length;i++){
-    let [cl,ch,il,ih]=bp[i];
-    if(C>=cl && C<=ch){
-      return ((ih-il)/(ch-cl))*(C-cl)+il;
-    }
+function calcSubIndex(C, bp) {
+  for (let i = 0; i < bp.length; i++) {
+    let [cl, ch, il, ih] = bp[i];
+    if (C >= cl && C <= ch) return ((ih - il) / (ch - cl)) * (C - cl) + il;
   }
   return 0;
 }
 
-function calculateAQI(pm25,pm10,no2,so2){
-  const bp25=[[0,30,0,50],[31,60,51,100],[61,90,101,200],[91,120,201,300],[121,250,301,500]];
-  const bp10=[[0,50,0,50],[51,100,51,100],[101,250,101,200],[251,350,201,300],[351,430,301,500]];
-  const bpNO2=[[0,40,0,50],[41,80,51,100],[81,180,101,200],[181,280,201,300],[281,400,301,500]];
-  const bpSO2=[[0,40,0,50],[41,80,51,100],[81,380,101,200],[381,800,201,300],[801,1600,301,500]];
+function calculateAQI(pm25, pm10, no2, so2) {
+  const bp25 = [[0,30,0,50],[31,60,51,100],[61,90,101,200],[91,120,201,300],[121,250,301,500]];
+  const bp10 = [[0,50,0,50],[51,100,51,100],[101,250,101,200],[251,350,201,300],[351,430,301,500]];
+  const bpNO2 = [[0,40,0,50],[41,80,51,100],[81,180,101,200],[181,280,201,300],[281,400,301,500]];
+  const bpSO2 = [[0,40,0,50],[41,80,51,100],[81,380,101,200],[381,800,201,300],[801,1600,301,500]];
 
   return Math.round(Math.max(
-    calcSubIndex(pm25,bp25),
-    calcSubIndex(pm10,bp10),
-    calcSubIndex(no2,bpNO2),
-    calcSubIndex(so2,bpSO2)
+    calcSubIndex(pm25, bp25),
+    calcSubIndex(pm10, bp10),
+    calcSubIndex(no2, bpNO2),
+    calcSubIndex(so2, bpSO2)
   ));
 }
 
-function aqiColor(a){
-  if(a<=50) return "aqi-good";
-  if(a<=100) return "aqi-moderate";
-  if(a<=200) return "aqi-unhealthy";
-  if(a<=300) return "aqi-very";
+function aqiColor(a) {
+  if (a <= 50) return "aqi-good";
+  if (a <= 100) return "aqi-moderate";
+  if (a <= 200) return "aqi-unhealthy";
+  if (a <= 300) return "aqi-very";
   return "aqi-hazard";
 }
 
-function healthText(a){
-  if(a<=50) return "Good air quality. Safe to breathe.";
-  if(a<=100) return "Moderate air. Sensitive people take care.";
-  if(a<=200) return "Unhealthy air. Reduce outdoor activity.";
-  if(a<=300) return "Very unhealthy. Avoid outdoor exposure.";
+function healthText(a) {
+  if (a <= 50) return "Good air quality. Safe to breathe.";
+  if (a <= 100) return "Moderate air. Sensitive people take care.";
+  if (a <= 200) return "Unhealthy air. Reduce outdoor activity.";
+  if (a <= 300) return "Very unhealthy. Avoid outdoor exposure.";
   return "Hazardous air. Stay indoors.";
 }
 
 /* FETCH AIR QUALITY FROM OPEN-METEO */
-async function fetchAQI(lat, lon, place){
+async function fetchAQI(lat, lon, place) {
   try {
     const r = await fetch(`https://api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide&timezone=auto`);
     const d = await r.json();
-
-    if(!d.hourly || !d.hourly.time || !d.hourly.pm2_5 || !d.hourly.pm10) throw "Data missing";
+    if (!d.hourly || !d.hourly.time || !d.hourly.pm2_5 || !d.hourly.pm10) throw "Data missing";
 
     const nowHour = new Date().toISOString().slice(0,13);
     const idx = d.hourly.time.findIndex(t => t.startsWith(nowHour));
@@ -218,13 +280,10 @@ async function fetchAQI(lat, lon, place){
 
     const pm25 = d.hourly.pm2_5?.[i] ?? 0;
     const pm10 = d.hourly.pm10?.[i] ?? 0;
-    const no2  = d.hourly.nitrogen_dioxide?.[i] ?? null;
-    const so2  = d.hourly.sulphur_dioxide?.[i] ?? null;
+    const no2  = d.hourly.nitrogen_dioxide?.[i] ?? 0;
+    const so2  = d.hourly.sulphur_dioxide?.[i] ?? 0;
 
-    let aqi = calculateAQI(pm25, pm10, 0, 0);
-    if(no2 !== null && so2 !== null){
-      aqi = Math.max(aqi, calculateAQI(pm25, pm10, no2, so2));
-    }
+    const aqi = calculateAQI(pm25, pm10, no2, so2);
 
     document.getElementById("aqi").textContent = "AQI " + aqi;
     document.getElementById("aqi").className = aqiColor(aqi);
@@ -232,12 +291,23 @@ async function fetchAQI(lat, lon, place){
     document.getElementById("health").textContent = healthText(aqi);
     document.getElementById("pm25").textContent = pm25.toFixed(1);
     document.getElementById("pm10").textContent = pm10.toFixed(1);
-    document.getElementById("no2").textContent = no2 !== null ? no2.toFixed(1) : "--";
-    document.getElementById("so2").textContent = so2 !== null ? so2.toFixed(1) : "--";
+    document.getElementById("no2").textContent = no2.toFixed(1);
+    document.getElementById("so2").textContent = so2.toFixed(1);
 
+    /* Hourly AQI display (next 12 hours) with time labels */
     const h = document.getElementById("hourly");
     h.innerHTML = "";
-    for(let x=0;x<12;x++) h.innerHTML += `<div>${aqi}</div>`;
+    for (let x = 0; x < 12; x++) {
+      const pm25h = d.hourly.pm2_5?.[i+x] ?? 0;
+      const pm10h = d.hourly.pm10?.[i+x] ?? 0;
+      const no2h  = d.hourly.nitrogen_dioxide?.[i+x] ?? 0;
+      const so2h  = d.hourly.sulphur_dioxide?.[i+x] ?? 0;
+      const hourAQI = calculateAQI(pm25h, pm10h, no2h, so2h);
+
+      const timeStr = new Date(d.hourly.time[i+x]).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      h.innerHTML += `<div class="${aqiColor(hourAQI)}">${timeStr}<br>${hourAQI}</div>`;
+    }
+
   } catch(e) {
     console.error("Air data fetch error:", e);
     document.getElementById("place").textContent = place;
@@ -252,21 +322,21 @@ async function fetchAQI(lat, lon, place){
   }
 }
 
-function searchCity(){
-  const city=document.getElementById("cityInput").value;
-  if(!city) return;
+function searchCity() {
+  const city = document.getElementById("cityInput").value;
+  if (!city) return;
   fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`)
-    .then(r=>r.json())
-    .then(d=>{ if(d[0]) fetchAQI(d[0].lat,d[0].lon,d[0].display_name); });
+    .then(r => r.json())
+    .then(d => { if (d[0]) fetchAQI(d[0].lat, d[0].lon, d[0].display_name); });
 }
 
-// GPS + IP fallback
+/* GPS + IP fallback */
 navigator.geolocation.getCurrentPosition(
-  p=>fetchAQI(p.coords.latitude,p.coords.longitude,"Your Location"),
-  ()=>fetch("https://ipapi.co/json/")
-        .then(r=>r.json())
-        .then(d=>fetchAQI(d.latitude,d.longitude,d.city+", "+d.country))
-        .catch(()=>fetchAQI(22.5726,88.3639,"Kolkata, India"))
+  p => fetchAQI(p.coords.latitude, p.coords.longitude, "Your Location"),
+  () => fetch("https://ipapi.co/json/")
+        .then(r => r.json())
+        .then(d => fetchAQI(d.latitude, d.longitude, d.city + ", " + d.country))
+        .catch(() => fetchAQI(22.5726, 88.3639, "Kolkata, India"))
 );
 </script>
 
