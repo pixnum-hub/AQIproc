@@ -13,7 +13,7 @@
 }
 body.light{
   --bg:#f4f6f8;
-  --card:#ffffff;
+  --card:#fff;
   --text:#000;
   --sub:#444;
 }
@@ -111,8 +111,8 @@ button{
 .aqi-hazard{color:#8e24aa;}
 </style>
 </head>
-
 <body class="oled">
+
 <div class="app">
 
 <div class="header">
@@ -163,7 +163,7 @@ function toggleMode(){
   document.body.className=mode===1?"light":mode===2?"oled":"";
 }
 
-/* CPCB CALCULATION */
+/* CPCB-style AQI calculation */
 function calcSubIndex(C,bp){
   for(let i=0;i<bp.length;i++){
     let [cl,ch,il,ih]=bp[i];
@@ -195,6 +195,7 @@ function aqiColor(a){
   if(a<=300) return "aqi-very";
   return "aqi-hazard";
 }
+
 function healthText(a){
   if(a<=50) return "Good air quality. Safe to breathe.";
   if(a<=100) return "Moderate air. Sensitive people take care.";
@@ -203,44 +204,50 @@ function healthText(a){
   return "Hazardous air. Stay indoors.";
 }
 
-/* FETCH REAL POLLUTANTS SAFELY */
+/* FETCH AIR QUALITY SAFELY FROM OPEN-METEO */
 async function fetchAQI(lat, lon, place){
-  try{
-    const r=await fetch(
-      `https://api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide&timezone=auto`
-    );
-    const d=await r.json();
-    if(!d.hourly || !d.hourly.time) throw "No hourly data";
+  try {
+    const r = await fetch(`https://api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide&timezone=auto`);
+    const d = await r.json();
+    if(!d.hourly || !d.hourly.time || !d.hourly.pm2_5 || !d.hourly.pm10) throw "Data missing";
 
-    const now=new Date().toISOString().slice(0,13);
-    const idx=d.hourly.time.findIndex(t=>t.startsWith(now));
-    const i=idx>=0?idx:0;
+    const nowHour = new Date().toISOString().slice(0,13);
+    const idx = d.hourly.time.findIndex(t => t.startsWith(nowHour));
+    const i = idx >= 0 ? idx : 0;
 
-    const pm25=d.hourly.pm2_5?.[i] ?? 0;
-    const pm10=d.hourly.pm10?.[i] ?? 0;
-    const no2=d.hourly.nitrogen_dioxide?.[i] ?? 0;
-    const so2=d.hourly.sulphur_dioxide?.[i] ?? 0;
+    const pm25 = d.hourly.pm2_5?.[i] ?? 0;
+    const pm10 = d.hourly.pm10?.[i] ?? 0;
+    const no2  = d.hourly.nitrogen_dioxide?.[i] ?? null;
+    const so2  = d.hourly.sulphur_dioxide?.[i] ?? null;
 
-    document.getElementById("pm25").textContent=pm25.toFixed(1);
-    document.getElementById("pm10").textContent=pm10.toFixed(1);
-    document.getElementById("no2").textContent=no2.toFixed(1);
-    document.getElementById("so2").textContent=so2.toFixed(1);
+    let aqi = calculateAQI(pm25, pm10, 0, 0);
+    if(no2 !== null && so2 !== null){
+      aqi = Math.max(aqi, calculateAQI(pm25, pm10, no2, so2));
+    }
 
-    const aqi=calculateAQI(pm25,pm10,no2,so2);
-    const aqiEl=document.getElementById("aqi");
-    aqiEl.textContent="AQI "+aqi;
-    aqiEl.className=aqiColor(aqi);
+    document.getElementById("aqi").textContent = "AQI " + aqi;
+    document.getElementById("aqi").className = aqiColor(aqi);
+    document.getElementById("place").textContent = place;
+    document.getElementById("health").textContent = healthText(aqi);
+    document.getElementById("pm25").textContent = pm25.toFixed(1);
+    document.getElementById("pm10").textContent = pm10.toFixed(1);
+    document.getElementById("no2").textContent = no2 !== null ? no2.toFixed(1) : "--";
+    document.getElementById("so2").textContent = so2 !== null ? so2.toFixed(1) : "--";
 
-    document.getElementById("place").textContent=place;
-    document.getElementById("health").textContent=healthText(aqi);
-
-    const h=document.getElementById("hourly");
-    h.innerHTML="";
-    for(let x=0;x<12;x++) h.innerHTML+=`<div>${aqi}</div>`;
-  }catch(e){
-    console.error(e);
-    document.getElementById("place").textContent=place;
-    document.getElementById("health").textContent="Air data temporarily unavailable.";
+    const h = document.getElementById("hourly");
+    h.innerHTML = "";
+    for(let x=0;x<12;x++) h.innerHTML += `<div>${aqi}</div>`;
+  } catch(e) {
+    console.error("Air data fetch error:", e);
+    document.getElementById("place").textContent = place;
+    document.getElementById("aqi").textContent = "AQI --";
+    document.getElementById("aqi").className = "";
+    document.getElementById("health").textContent = "Air data temporarily unavailable.";
+    document.getElementById("pm25").textContent = "--";
+    document.getElementById("pm10").textContent = "--";
+    document.getElementById("no2").textContent = "--";
+    document.getElementById("so2").textContent = "--";
+    document.getElementById("hourly").innerHTML = "";
   }
 }
 
@@ -252,6 +259,7 @@ function searchCity(){
     .then(d=>{ if(d[0]) fetchAQI(d[0].lat,d[0].lon,d[0].display_name); });
 }
 
+// GPS + IP fallback
 navigator.geolocation.getCurrentPosition(
   p=>fetchAQI(p.coords.latitude,p.coords.longitude,"Your Location"),
   ()=>fetch("https://ipapi.co/json/")
@@ -260,5 +268,6 @@ navigator.geolocation.getCurrentPosition(
         .catch(()=>fetchAQI(22.5726,88.3639,"Kolkata, India"))
 );
 </script>
+
 </body>
 </html>
