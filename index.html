@@ -163,7 +163,7 @@ function toggleMode(){
   document.body.className=mode===1?"light":mode===2?"oled":"";
 }
 
-/* CPCB-style AQI calculation */
+/* AQI calculation */
 function calcSubIndex(C,bp){
   for(let i=0;i<bp.length;i++){
     let [cl,ch,il,ih]=bp[i];
@@ -204,11 +204,12 @@ function healthText(a){
   return "Hazardous air. Stay indoors.";
 }
 
-/* FETCH AIR QUALITY SAFELY FROM OPEN-METEO */
+/* FETCH AIR QUALITY FROM OPEN-METEO */
 async function fetchAQI(lat, lon, place){
   try {
     const r = await fetch(`https://api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide&timezone=auto`);
     const d = await r.json();
+
     if(!d.hourly || !d.hourly.time || !d.hourly.pm2_5 || !d.hourly.pm10) throw "Data missing";
 
     const nowHour = new Date().toISOString().slice(0,13);
