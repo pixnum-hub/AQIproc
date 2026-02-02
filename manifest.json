@@ -1,21 +1,28 @@
 {
-  "name": "AQIproc",
-  "short_name": "AQIproc",
-  "description": "Real-time Air Quality Index (AQI) app with hourly forecast and pollutant levels.",
-  "start_url": "./index.html",
+  "name": "AQI Pro Max",
+  "short_name": "AQI Pro",
+  "description": "Live Air Quality Index, pollutants, and trends in a clean, elderly-friendly interface.",
+  "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#4a7cff",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "icons/aqi-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icons/aqi-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "icons/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
