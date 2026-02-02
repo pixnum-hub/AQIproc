@@ -1,40 +1,44 @@
-const CACHE_NAME = "aqiproc-cache-v1";
+const CACHE_NAME = "aqi-pro-max-v1";
 const ASSETS = [
   "./",
   "./index.html",
-  "./manifest.json",
-  "./sw.js",
-  "./style.css",
-  "./icons/aqi-192.png",
-  "./icons/aqi-512.png"
+  "./manifest.json"
 ];
 
-// Install: cache all assets
+// Install
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
+  self.skipWaiting();
 });
 
-// Activate: clean old caches
+// Activate
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(keys => 
-      Promise.all(keys.map(key => {
-        if(key !== CACHE_NAME) return caches.delete(key);
-      }))
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      )
     )
   );
+  self.clients.claim();
 });
 
-// Fetch: serve cache first, then network
+// Fetch (Network first for API, Cache first for app shell)
 self.addEventListener("fetch", event => {
+  const url = new URL(event.request.url);
+
+  // API requests → network first
+  if (url.hostname.includes("open-meteo.com")) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // App files → cache first
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request);
-    }).catch(() => {
-      // Fallback: optional offline page
-      if(event.request.mode === "navigate") return caches.match("./index.html");
-    })
+    caches.match(event.request).then(res => res || fetch(event.request))
   );
 });
